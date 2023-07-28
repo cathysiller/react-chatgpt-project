@@ -1,35 +1,55 @@
 
-import Image from "next/image";
-import stacks from "../../data/stacks.json";
+import stacks from "@/data/stacks.json";
+import Header from "@/components/Header";
+import Message from "@/components/Message";
+import Prompt from "@/components/Prompt";
+import { useEffect, useRef, useState } from "react";
 
 export default function Stack({stack, stackKey}) {
+  const [messages, setMessages] = useState([]);
+  const chatRef = useRef(null);
+
+  useEffect(() => {
+    chatRef.current.scrollTo(0, chatRef.current.scrollHeight);
+  }, [messages]);
+
+  const onSubmit = (prompt) => {
+    if (prompt.trim().length === 0) {
+      return;
+    }
+
+    setMessages((messages) => {
+      return [
+        ...messages,
+        {
+          id: new Date().toISOString(),
+          author: "human",
+          avatar: "https://thrangra.sirv.com/Avatar2.png",
+          text: prompt
+        }
+      ]
+    })
+  }
+
   return (
     <div className="h-full flex flex-col">
-      <div className="header flex bg-slate-200 p-4 rounded-2xl">
-        <div className="flex mr-4 justify-center items-center">
-          <Image src={stack.logo} width={200} height={200} alt="" />
-        </div>
-        <div className="flex font-bold text-sm">
-          {stack.info}
-        </div>
-      </div>
-
+      <Header logo={stack.logo} info={stack.info} />
       <hr className="my-4" />
-
-      <div className="chat flex flex-col h-full overflow-scroll">
-        <div className="flex flex-row bg-slate-100 p-4">
-          <div className="w-[30px] relative mr-4">
-            <Image
-              src="/logo-open-ai.png"
-              width={30}
-              height={30}
-              alt=""
-            />
-          </div>
-          <div className="w-full">
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-          </div>
-        </div>
+      <div ref={chatRef} className="chat flex flex-col h-full overflow-scroll">
+        { messages.map((message, i) =>
+          <Message
+            key={message.id}
+            idx={i}
+            author={message.author}
+            avatar={message.avatar}
+            text={message.text}
+          />
+        )}
+      </div>
+      <div className="flex p-4">
+        <Prompt
+          onSubmit={onSubmit}
+        />
       </div>
     </div>
   )
